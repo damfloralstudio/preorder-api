@@ -299,8 +299,8 @@ Tokens live **only** in Cloudflare, as a Secret. They never go in a repository, 
 ## 10. Operations
 
 ### 10.1 One-time Square Dashboard setup
-- [ ] Location `LRE7GZ33WEFC6`: check that its address is OK for customers to see. It's the pickup location shown by Square.
-- [ ] Checkout / payment link settings: logo, button color, and the policy wording from §5.5. Turn off customer notes unless wanted.
+- [ ] Location `LRE7GZ33WEFC6`: its address is a private home address. Hide or remove it from customer-facing pages and receipts if Square allows (see §12).
+- [ ] Checkout / payment link settings: logo, button color `#252421` (the website's ink color, used for its checkout button), and the policy wording from §5.5. Turn off customer notes unless wanted.
 - [ ] "Payment received" email notifications on.
 - [ ] Confirm the NJ sales tax rate (§14).
 
@@ -326,6 +326,7 @@ Before each day, filter or export orders. The item names start with the pickup d
 | Risk / limit | Impact | Mitigation |
 |---|---|---|
 | Square rejects a `PICKUP` fulfillment on payment links (the docs don't show an example) | Orders lack Square's pickup fields | Sandbox test T1 goes first. Fallback: set `PICKUP_FULFILLMENT=off` in Cloudflare to drop `fulfillments` without a code change. Slot and name stay in item names and the payment note |
+| Square shows the location's address, a private home address ("700 1st St"), to customers. Pickup orders have no address field, so Square may show the location address as the pickup place, and receipts may show it as the business address | Customers see a private address and may go to the wrong pickup place | Before launch, hide or remove the address in the location's Square settings if possible (e.g. a no-storefront location type or receipt settings). Don't set the location address to Bwè Kafe. During the real-money check, look for the address on the checkout page, the receipt email and any pickup message. If it appears, set `PICKUP_FULFILLMENT=off` so Square has no pickup to attach it to; the slot and name stay in item names and the payment note |
 | Limits are per order, not per person | Someone can check out twice | Accepted. Visible in the Dashboard |
 | No capacity cap | Could oversell | Accepted for this window. Watch the order count in the Dashboard |
 | A visitor's device clock is wrong | Page shows open or closed at the wrong time | The function is the authority. A late click shows the closed message |
@@ -355,7 +356,7 @@ Sandbox payment links open Square's **Checkout API Sandbox Testing Panel**, whic
 2. **Website:** merge `thanksgiving.html`, `thanksgiving-thanks.html` and their script to `main`, *without* the homepage button. The page is live but unlisted, and **its link isn't shared yet**.
 3. Run sandbox tests T1–T8 on the live page.
 4. **Switch to production:** update the Cloudflare variables to the Live column (including `PREORDER_OPENS`) and deploy.
-5. **Real-money check:** buy one bouquet with a real card on the live page. On Square's checkout page, confirm the NJ sales tax line, no tip, coupon or shipping fields, and the studio's branding. After paying, confirm the redirect to the thank-you page. In the Dashboard, check the order, pickup and that the sale appears under Transactions, then refund it. The sandbox Dashboard's Home → Performance tile showed $0.00 net sales after the simulated payment, so sales reporting is only verified here.
+5. **Real-money check:** buy one bouquet with a real card on the live page. Look for the private location address on the checkout page, the receipt email and any pickup message (§12). On Square's checkout page, confirm the NJ sales tax line, no tip, coupon or shipping fields, and the studio's branding. After paying, confirm the redirect to the thank-you page. In the Dashboard, check the order, pickup and that the sale appears under Transactions, then refund it. The sandbox Dashboard's Home → Performance tile showed $0.00 net sales after the simulated payment, so sales reporting is only verified here.
 6. **Go public:** merge the homepage button and post the UTM-tagged link.
 7. **After close:** the page shows the closed message and the homepage button hides itself automatically. Later, remove the button and pages from the repository at leisure.
 
