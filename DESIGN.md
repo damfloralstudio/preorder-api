@@ -105,7 +105,7 @@ Uses the existing site's fonts, colors and header/footer. Top to bottom:
 ### 5.4 Product copy
 
 **Thanksgiving Bouquet · Designer’s Choice: $50**
-> A little of November, wrapped to give. Wine reds, burnt orange, and fresh greens come together in a hand-tied bouquet for your Thanksgiving host or your own table.
+> A bit of November, wrapped to give. Wine reds, burnt orange, and fresh greens come together in a hand-tied bouquet for your Thanksgiving host or your own table.
 >
 > Designer handpicks the flowers for your order and ties each bouquet by hand. The exact blooms will vary, giving yours a style of its own while keeping the size and warm fall colors close to the photo.
 
