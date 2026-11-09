@@ -337,15 +337,15 @@ Before each day, filter or export orders. The item names start with the pickup d
 ## 13. Test and launch plan
 
 ### 13.1 Sandbox tests (function set to `SQUARE_ENV=sandbox`)
-Use Square's sandbox test card (e.g. Visa `4111 1111 1111 1111`, any future expiry, CVV and ZIP).
+Sandbox payment links open Square's **Checkout API Sandbox Testing Panel**, which simulates the payment. The card form under "Preview Checkout" is a non-interactive preview, so you can't pay with a card in sandbox. Checks of the real customer-facing page (tax line, hidden tip/coupon/shipping, branding) move to the real-money check in §13.2 step 5.
 
 | # | Test | Expected |
 |---|---|---|
-| T1 | Order with pickup fulfillment | Link created. Paid order shows in the sandbox Dashboard with pickup time and name. **If rejected, switch to the fallback (§12) before continuing** |
-| T2 | Tax | $100 subtotal shows NJ sales tax added at checkout |
+| T1 | Order with pickup fulfillment | **Passed 2026-11-09.** Link created with the `PICKUP` fulfillment, simulated payment succeeded (order `OPEN`), and the sandbox Dashboard order shows items, tax, pickup time and recipient. The fallback (§12) isn't needed |
+| T2 | Tax | **Passed in sandbox Dashboard** (NJ Sales Tax on the order). Confirm the tax line on the real checkout page in step 5 |
 | T3 | Limits | 4 bouquets, 3 arrangements, 0 items, a bad slot or an empty name are each rejected with the right error |
-| T4 | Redirect | After payment, lands on `thanksgiving-thanks.html` |
-| T5 | Tipping, coupon, shipping | None shown on the checkout page |
+| T4 | Redirect | **Configured correctly** (testing panel reports redirect to `thanksgiving-thanks.html`). Confirm the real redirect in step 5 |
+| T5 | Tipping, coupon, shipping | Can't be seen in sandbox. Confirm none are shown in step 5 |
 | T6 | Closed window | With `PREORDER_CLOSES` set to the past, the page shows the closed message |
 | T7 | Analytics | Events appear in Umami (from the live domain) |
 | T8 | Mobile | Page and checkout work on a phone, including the Instagram in-app browser |
@@ -355,7 +355,7 @@ Use Square's sandbox test card (e.g. Visa `4111 1111 1111 1111`, any future expi
 2. **Website:** merge `thanksgiving.html`, `thanksgiving-thanks.html` and their script to `main`, *without* the homepage button. The page is live but unlisted, and **its link isn't shared yet**.
 3. Run sandbox tests T1–T8 on the live page.
 4. **Switch to production:** update the Cloudflare variables to the Live column (including `PREORDER_OPENS`) and deploy.
-5. **Real-money check:** buy one bouquet with a real card, check the order, tax and pickup in the Dashboard, then refund it.
+5. **Real-money check:** buy one bouquet with a real card on the live page. On Square's checkout page, confirm the NJ sales tax line, no tip, coupon or shipping fields, and the studio's branding. After paying, confirm the redirect to the thank-you page. In the Dashboard, check the order, pickup and that the sale appears under Transactions, then refund it. The sandbox Dashboard's Home → Performance tile showed $0.00 net sales after the simulated payment, so sales reporting is only verified here.
 6. **Go public:** merge the homepage button and post the UTM-tagged link.
 7. **After close:** the page shows the closed message and the homepage button hides itself automatically. Later, remove the button and pages from the repository at leisure.
 
