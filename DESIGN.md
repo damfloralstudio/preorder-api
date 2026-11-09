@@ -139,9 +139,11 @@ Content-Type: application/json
 | Status | Body | Meaning |
 |---|---|---|
 | 200 | `{ "url": "https://square.link/u/..." }` | Redirect the browser to `url` |
-| 400 | `{ "error": "empty_order" \| "invalid_quantity" \| "invalid_pickup" \| "invalid_name" }` | Bad input |
+| 204 | (empty) | Answer to an `OPTIONS` CORS preflight |
+| 400 | `{ "error": "invalid_request" \| "empty_order" \| "invalid_quantity" \| "invalid_pickup" \| "invalid_name" }` | Bad input (`invalid_request` means malformed JSON) |
 | 403 | `{ "error": "preorders_closed" }` | Outside the order window |
-| 405 | `{ "error": "method_not_allowed" }` | Not a POST (or an OPTIONS preflight) |
+| 405 | `{ "error": "method_not_allowed" }` | Any method other than POST or OPTIONS |
+| 500 | `{ "error": "server_misconfigured" }` | A required environment variable is missing or invalid |
 | 502 | `{ "error": "square_error" }` | Square rejected the request or was unreachable. Details go to Vercel logs only |
 
 The browser never sends prices, product names, pickup times or tax.
@@ -160,7 +162,7 @@ The browser never sends prices, product names, pickup times or tax.
 6. **Call Square** `POST /v2/online-checkout/payment-links` with a new `crypto.randomUUID()` idempotency key.
 7. Return `payment_link.url`. On any Square error, log the response and return `square_error`.
 
-**Implementation:** one file, `api/checkout.js`, on the Node.js runtime. It uses built-in `fetch` with no dependencies.
+**Implementation:** `api/checkout.js` (the endpoint) and `lib/order.js` (catalog, validation and request building), on the Node.js runtime. It uses built-in `fetch` with no dependencies. Tests are in `test/checkout.test.js` (`npm test`).
 
 ### 7.2 Constants
 
@@ -364,8 +366,10 @@ Use Square's sandbox test card (e.g. Visa `4111 1111 1111 1111`, any future expi
 
 **`damfloralstudio/preorder-api`** (new; first commit on `main`, deployed by Vercel)
 ```
-api/checkout.js     the checkout function
-package.json        Node version only, no dependencies
+api/checkout.js     the checkout endpoint
+lib/order.js        products, prices, slots, tax, Square request body
+test/               tests (npm test)
+package.json        ES module setting and test script, no dependencies
 README.md           setup, environment variables, testing
 DESIGN.md           this document
 ```

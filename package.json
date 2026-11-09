@@ -1,0 +1,9 @@
+{
+  "name": "preorder-api",
+  "private": true,
+  "description": "Checkout function for DAM Floral Studio Thanksgiving pre-orders",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
