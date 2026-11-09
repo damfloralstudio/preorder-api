@@ -14,7 +14,7 @@ DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choo
 ## 2. Goals and non-goals
 
 **Goals**
-- Customers can pre-order Thanksgiving Bouquets ($50) and Thanksgiving Arrangements ($60) for pickup at Bwè Kafe.
+- Customers can pre-order the Thanksgiving Bouquet ($50) and the Pumpkin Floral Arrangement ($60) for pickup at Bwè Kafe.
 - The experience stays on-brand. Only the payment step happens on Square.
 - Prices, quantity limits and the order window are enforced on the server.
 - The studio gets a clear pickup list from the Square Dashboard.
@@ -30,7 +30,7 @@ DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choo
 
 | Item | Value |
 |---|---|
-| Products | **Thanksgiving Bouquet**: $50.00, max 3 per order · **Thanksgiving Arrangement**: $60.00, max 2 per order |
+| Products | **Thanksgiving Bouquet · Designer’s Choice**: $50.00, max 3 per order · **Pumpkin Floral Arrangement · Designer’s Choice**: $60.00, max 2 per order (pumpkin vase included) |
 | Product photos | `assets/thanksgiving_bouquet.jpg`, `assets/thanksgiving_arrangement.jpg` |
 | Pickup location | Bwè Kafe – Washington St., 1002 Washington St, Hoboken, NJ 07030 |
 | Pickup slots | **Tue Nov 24, 9am–5pm** · **Wed Nov 25, 9am–12pm** |
@@ -85,7 +85,7 @@ Uses the existing site's fonts, colors and header/footer. Top to bottom:
 3. **Pickup time.** Two radio options, "Tue Nov 24, 9am–5pm" and "Wed Nov 25, 9am–12pm".
 4. **Pickup location.** Bwè Kafe, 1002 Washington St, Hoboken, with a map link.
 5. **Your details.** *Name for pickup* (required, max 100 characters). No email field: see §5.6.
-6. **Summary.** For example: "2 Thanksgiving Bouquets · Subtotal $100.00 · NJ sales tax added at checkout". The page doesn't calculate tax itself, so it can't disagree with Square by a cent.
+6. **Summary.** For example: "2 Thanksgiving Bouquets · Subtotal $100.00 · NJ sales tax added at checkout". The summary uses short names ("Thanksgiving Bouquet", "Pumpkin Floral Arrangement") so the "·" separators stay readable. The page doesn't calculate tax itself, so it can't disagree with Square by a cent.
 7. **Continue to secure checkout** button. It stays disabled until there is at least one item, a pickup slot and a name. Note below it: "Payment is processed securely by Square."
 8. **Policy** (wording in §5.5).
 9. Footer note: "We use privacy-friendly, cookie-free analytics."
@@ -104,11 +104,17 @@ Uses the existing site's fonts, colors and header/footer. Top to bottom:
 
 ### 5.4 Product copy
 
-**Thanksgiving Bouquet: $50**
-> A hand-tied armful of autumn: glowing marigold orange, deep cranberry red, soft peach and a cheeky pop of green, wrapped and ready to hand to your host (or keep for yourself, we won't tell). **Designer's Choice:** your bouquet will match the color palette pictured, while the exact flowers will be our pick of the freshest seasonal blooms that week.
+**Thanksgiving Bouquet · Designer’s Choice: $50**
+> A little of November, wrapped to give. Wine reds, burnt orange, and fresh greens come together in a hand-tied bouquet for your Thanksgiving host or your own table.
+>
+> Designer handpicks the flowers for your order and ties each bouquet by hand. The exact blooms will vary, giving yours a style of its own while keeping the size and warm fall colors close to the photo.
 
-**Thanksgiving Arrangement: $60**
-> The harvest, ready for the table: marigold orange, cranberry red and peach blooms with playful green accents, arranged in a seasonal vessel so all you have to do is set it down and soak up the compliments. **Designer's Choice:** your arrangement will match the color palette pictured, while the exact flowers and vase will be our pick of the freshest blooms and vessels available that week.
+**Pumpkin Floral Arrangement · Designer’s Choice: $60**
+> A little pumpkin filled with the colors of late fall. Set it on your Thanksgiving table or bring it along as a gift that’s ready to display.
+>
+> Designer chooses the blooms for your order and arranges them by hand, letting each stem find its place. Every piece is a little different, with a similar size and fall palette to the photo. The shade and finish of the vase may vary slightly.
+>
+> Pumpkin vase included. Available in limited quantities.
 
 ### 5.5 Policy wording
 Shown on the pre-order page, on the thank-you page, and in the Square checkout policies (§10.1):
@@ -169,8 +175,8 @@ The browser never sends prices, product names, pickup times or tax.
 
 ```
 PRODUCTS
-  bouquet:     "Thanksgiving Bouquet",     5000 cents, max 3
-  arrangement: "Thanksgiving Arrangement", 6000 cents, max 2
+  bouquet:     "Thanksgiving Bouquet · Designer’s Choice",       5000 cents, max 3
+  arrangement: "Pumpkin Floral Arrangement · Designer’s Choice", 6000 cents, max 2
 
 PICKUP SLOTS                          pickup_at (UTC)          window   label
   tue: Tue Nov 24, 9am–5pm ET         2026-11-24T14:00:00Z     PT8H     "Pickup Tue 11/24"
@@ -195,7 +201,7 @@ Content-Type: application/json
     "location_id": "<SQUARE_LOCATION_ID>",
     "line_items": [
       {
-        "name": "Thanksgiving Bouquet — Pickup Tue 11/24",
+        "name": "Thanksgiving Bouquet · Designer’s Choice — Pickup Tue 11/24",
         "quantity": "2",
         "base_price_money": { "amount": 5000, "currency": "USD" }
       }
@@ -312,7 +318,7 @@ Tokens live **only** in Cloudflare, as a Secret. They never go in a repository, 
 Refund the payment from the Square Dashboard after receiving the email request.
 
 ### 10.4 Pickup days
-Before each day, filter or export orders. The item names start with the pickup day, so the export sorts into a Tuesday list and a Wednesday list with names and quantities. Mark orders complete as customers pick up.
+Before each day, filter or export orders. Each item name ends with its pickup day ("— Pickup Tue 11/24" or "— Pickup Wed 11/25"), so the export filters into a Tuesday list and a Wednesday list with names and quantities. Mark orders complete as customers pick up.
 
 ## 11. Security and privacy
 - The Square token exists only as a Cloudflare Worker secret.

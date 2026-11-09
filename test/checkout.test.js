@@ -60,8 +60,8 @@ test('Square request has server-side prices, tax, pickup and checkout options', 
   assert.ok(body.idempotency_key);
   assert.equal(body.order.location_id, 'LTEST');
   assert.deepEqual(body.order.line_items, [
-    { name: 'Thanksgiving Bouquet — Pickup Wed 11/25', quantity: '2', base_price_money: { amount: 5000, currency: 'USD' } },
-    { name: 'Thanksgiving Arrangement — Pickup Wed 11/25', quantity: '1', base_price_money: { amount: 6000, currency: 'USD' } },
+    { name: 'Thanksgiving Bouquet · Designer’s Choice — Pickup Wed 11/25', quantity: '2', base_price_money: { amount: 5000, currency: 'USD' } },
+    { name: 'Pumpkin Floral Arrangement · Designer’s Choice — Pickup Wed 11/25', quantity: '1', base_price_money: { amount: 6000, currency: 'USD' } },
   ]);
   assert.deepEqual(body.order.taxes, [{ uid: 'nj-sales-tax', name: 'NJ Sales Tax', percentage: '6.625', type: 'ADDITIVE', scope: 'ORDER' }]);
   const pickup = body.order.fulfillments[0];
@@ -217,5 +217,5 @@ test('buildPaymentLinkRequest omits products with zero quantity', () => {
     { locationId: 'L', idempotencyKey: 'k' },
   );
   assert.equal(body.order.line_items.length, 1);
-  assert.equal(body.order.line_items[0].name, 'Thanksgiving Arrangement — Pickup Tue 11/24');
+  assert.equal(body.order.line_items[0].name, 'Pumpkin Floral Arrangement · Designer’s Choice — Pickup Tue 11/24');
 });
