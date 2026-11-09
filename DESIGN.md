@@ -347,7 +347,7 @@ Sandbox payment links open Square's **Checkout API Sandbox Testing Panel**, whic
 | T4 | Redirect | **Configured correctly** (testing panel reports redirect to `thanksgiving-thanks.html`). Confirm the real redirect in step 5 |
 | T5 | Tipping, coupon, shipping | Can't be seen in sandbox. Confirm none are shown in step 5 |
 | T6 | Closed window | With `PREORDER_CLOSES` set to the past, the page shows the closed message |
-| T7 | Analytics | Events appear in Umami (from the live domain) |
+| T7 | Analytics | **Passed 2026-11-09.** Test order on the live page reached the sandbox testing panel, and the visit and events appeared in Umami |
 | T8 | Mobile | Page and checkout work on a phone, including the Instagram in-app browser |
 
 ### 13.2 Launch sequence
