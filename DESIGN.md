@@ -9,7 +9,7 @@
 
 ## 1. Summary
 
-DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choose products, a pickup time and their name on **damfloralstudio.com**. They pay on a **Square-hosted checkout page** branded with the studio's logo. A small **Vercel serverless function** connects the two. It holds the Square credentials, sets prices and builds the order, so neither prices nor secrets ever reach the browser. Square's Dashboard is the source of truth for orders and payments. Umami Cloud provides basic page analytics to compare visits, checkout clicks and payments.
+DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choose products, a pickup time and their name on **damfloralstudio.com**. They pay on a **Square-hosted checkout page** branded with the studio's logo. A small **Cloudflare Worker** (free plan) connects the two. It holds the Square credentials, sets prices and builds the order, so neither prices nor secrets ever reach the browser. Square's Dashboard is the source of truth for orders and payments. Umami Cloud provides basic page analytics to compare visits, checkout clicks and payments.
 
 ## 2. Goals and non-goals
 
@@ -46,7 +46,7 @@ DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choo
 | Component | What it is | Its job | What it never does |
 |---|---|---|---|
 | **Website** (`damfloralstudio.com`) | Static site on GitHub Pages | Shows products and collects quantities, pickup slot and name | Holds the Square token, sets prices or takes payment |
-| **Checkout function** (`preorder-api` on Vercel) | One serverless endpoint, `POST /api/checkout` | Validates the request, sets prices and tax, builds the Square order, returns a checkout link | Shows pages to customers or stores customer data |
+| **Checkout function** (`preorder-api` on Cloudflare Workers) | One serverless endpoint, `POST /api/checkout` | Validates the request, sets prices and tax, builds the Square order, returns a checkout link | Shows pages to customers or stores customer data |
 | **Square** | Payment provider | Hosts the payment page, takes payment, emails receipts, records the order | Knows anything about the website |
 | **Umami Cloud** | Cookie-free analytics | Counts page views and checkout funnel events | Receives names, emails or payment details |
 
@@ -56,7 +56,7 @@ Example: a customer orders 2 bouquets for Tuesday pickup.
 
 1. The customer opens `damfloralstudio.com/thanksgiving.html`, served by GitHub Pages.
 2. They choose 2 bouquets and Tuesday, enter their name, and click **Continue to secure checkout**.
-3. The website sends the Vercel function only the choices: `2 bouquets, pickup tue, name`.
+3. The website sends the checkout function only the choices: `2 bouquets, pickup tue, name`.
 4. The function checks that the window is open, quantities are within limits, and the slot and name are valid. It adds what only it knows: prices, tax, the exact pickup time and the pickup note.
 5. The function calls Square's `CreatePaymentLink` with the secret token.
 6. Square creates a draft order and returns a single-use checkout link.
@@ -126,7 +126,7 @@ Trade-off: we give up pre-filling the email on Square's page (`pre_populated_dat
 ## 6. API contract: website ↔ checkout function
 
 ```
-POST https://<vercel-project-domain>/api/checkout
+POST https://preorder-api.<subdomain>.workers.dev/api/checkout
 Content-Type: application/json
 
 {
@@ -142,9 +142,10 @@ Content-Type: application/json
 | 204 | (empty) | Answer to an `OPTIONS` CORS preflight |
 | 400 | `{ "error": "invalid_request" \| "empty_order" \| "invalid_quantity" \| "invalid_pickup" \| "invalid_name" }` | Bad input (`invalid_request` means malformed JSON) |
 | 403 | `{ "error": "preorders_closed" }` | Outside the order window |
+| 404 | `{ "error": "not_found" }` | Any path other than `/api/checkout` |
 | 405 | `{ "error": "method_not_allowed" }` | Any method other than POST or OPTIONS |
 | 500 | `{ "error": "server_misconfigured" }` | A required environment variable is missing or invalid |
-| 502 | `{ "error": "square_error" }` | Square rejected the request or was unreachable. Details go to Vercel logs only |
+| 502 | `{ "error": "square_error" }` | Square rejected the request or was unreachable. Details go to the Worker logs only |
 
 The browser never sends prices, product names, pickup times or tax.
 
@@ -162,7 +163,7 @@ The browser never sends prices, product names, pickup times or tax.
 6. **Call Square** `POST /v2/online-checkout/payment-links` with a new `crypto.randomUUID()` idempotency key.
 7. Return `payment_link.url`. On any Square error, log the response and return `square_error`.
 
-**Implementation:** `api/checkout.js` (the endpoint) and `lib/order.js` (catalog, validation and request building), on the Node.js runtime. It uses built-in `fetch` with no dependencies. Tests are in `test/checkout.test.js` (`npm test`).
+**Implementation:** a Cloudflare Worker, `src/index.js` (the endpoint), and `lib/order.js` (catalog, validation and request building). It uses only web-standard APIs (`fetch`, `Request`, `Response`, `crypto.randomUUID`) with no dependencies. Tests are in `test/checkout.test.js` (`npm test`).
 
 ### 7.2 Constants
 
@@ -243,9 +244,14 @@ Content-Type: application/json
 - The checkout page always includes a contact section for the buyer's email and phone. After payment, Square adds them to the order fulfillment's `recipient`.
 - API base URLs: production `https://connect.squareup.com`, sandbox `https://connect.squareupsandbox.com`.
 
+### 7.5 Decision: Cloudflare Workers instead of Vercel
+The original plan used Vercel. Vercel's free Hobby plan is limited to non-commercial use, and a shop's checkout is commercial. Cloudflare Workers' free plan has no such restriction and comfortably covers this traffic. The logic in `lib/order.js` didn't change; only the request/response wrapper (`src/index.js`) did.
+
 ## 8. Configuration
 
-### 8.1 Vercel environment variables (`preorder-api`)
+### 8.1 Cloudflare Worker variables (`preorder-api`)
+
+Set in the Cloudflare dashboard: Worker → Settings → Variables and Secrets. `SQUARE_ACCESS_TOKEN` is a **Secret**; the rest are Text. `wrangler.toml` sets `keep_vars = true` so deploys from GitHub don't erase them.
 
 | Variable | Sandbox phase | Live |
 |---|---|---|
@@ -253,14 +259,14 @@ Content-Type: application/json
 | `SQUARE_ACCESS_TOKEN` | Sandbox access token | Production access token (secret) |
 | `SQUARE_LOCATION_ID` | `LGNJTM59K97VM` | `LRE7GZ33WEFC6` |
 | `ALLOWED_ORIGINS` | `https://damfloralstudio.com,http://localhost:8000` | `https://damfloralstudio.com` |
-| `PREORDER_OPENS` | `2026-11-09T00:00:00-05:00` | same |
+| `PREORDER_OPENS` | `2026-11-08T00:00:00-05:00` (early, so testing can start before launch) | `2026-11-09T00:00:00-05:00` |
 | `PREORDER_CLOSES` | `2026-11-15T23:59:59-05:00` | same |
 | `PICKUP_FULFILLMENT` | unset (on) | unset, or `off` if test T1 fails |
 
-Tokens live **only** in Vercel. They never go in a repository, a chat or the website. If a token is ever exposed, replace it in the Square Developer Console and update Vercel.
+Tokens live **only** in Cloudflare, as a Secret. They never go in a repository, a chat or the website. If a token is ever exposed, replace it in the Square Developer Console and update Cloudflare.
 
 ### 8.2 Website constants (`thanksgiving.js`)
-`CHECKOUT_URL` (the Vercel endpoint), `CLOSES_AT` (same close time, used to show the closed state), the product prices and limits for display only, and the slot labels.
+`CHECKOUT_URL` (the Worker endpoint), `CLOSES_AT` (same close time, used to show the closed state), the product prices and limits for display only, and the slot labels.
 
 ## 9. Analytics (Umami Cloud)
 
@@ -300,7 +306,7 @@ Tokens live **only** in Vercel. They never go in a repository, a chat or the web
 
 ### 10.2 During the window
 - Orders appear in **Dashboard → Orders** as they're paid.
-- Use Umami to watch the funnel. A gap between `checkout_click` and `checkout_redirect` means errors; check Vercel logs.
+- Use Umami to watch the funnel. A gap between `checkout_click` and `checkout_redirect` means errors; check the Worker logs.
 
 ### 10.3 Cancellations (before Sun Nov 15, 11:59pm)
 Refund the payment from the Square Dashboard after receiving the email request.
@@ -309,7 +315,7 @@ Refund the payment from the Square Dashboard after receiving the email request.
 Before each day, filter or export orders. The item names start with the pickup day, so the export sorts into a Tuesday list and a Wednesday list with names and quantities. Mark orders complete as customers pick up.
 
 ## 11. Security and privacy
-- The Square token exists only in Vercel environment variables.
+- The Square token exists only as a Cloudflare Worker secret.
 - Prices, tax, limits and the order window are enforced by the function. Editing the page in a browser can't change what's charged.
 - CORS limits browser calls to damfloralstudio.com. This isn't an access control: the endpoint only creates unpaid, single-use links, so misuse costs nothing.
 - Card data never touches our code. Only the customer's name passes through the function to Square, and it isn't stored by us. Email and phone are entered directly on Square's page.
@@ -319,14 +325,14 @@ Before each day, filter or export orders. The item names start with the pickup d
 
 | Risk / limit | Impact | Mitigation |
 |---|---|---|
-| Square rejects a `PICKUP` fulfillment on payment links (the docs don't show an example) | Orders lack Square's pickup fields | Sandbox test T1 goes first. Fallback: set `PICKUP_FULFILLMENT=off` in Vercel to drop `fulfillments` without a code change. Slot and name stay in item names and the payment note |
+| Square rejects a `PICKUP` fulfillment on payment links (the docs don't show an example) | Orders lack Square's pickup fields | Sandbox test T1 goes first. Fallback: set `PICKUP_FULFILLMENT=off` in Cloudflare to drop `fulfillments` without a code change. Slot and name stay in item names and the payment note |
 | Limits are per order, not per person | Someone can check out twice | Accepted. Visible in the Dashboard |
 | No capacity cap | Could oversell | Accepted for this window. Watch the order count in the Dashboard |
 | A visitor's device clock is wrong | Page shows open or closed at the wrong time | The function is the authority. A late click shows the closed message |
 | Ad blockers | Analytics undercount | Square is the source of truth |
 | Function or Square outage | Customers can't check out | The error message points to email |
 
-**Kill switch:** to stop orders immediately, set `PREORDER_CLOSES` in Vercel to a past time and redeploy. Every checkout attempt then shows the closed message.
+**Kill switch:** to stop orders immediately, set `PREORDER_CLOSES` in Cloudflare to a past time and deploy. Every checkout attempt then shows the closed message.
 
 ## 13. Test and launch plan
 
@@ -345,10 +351,10 @@ Use Square's sandbox test card (e.g. Visa `4111 1111 1111 1111`, any future expi
 | T8 | Mobile | Page and checkout work on a phone, including the Instagram in-app browser |
 
 ### 13.2 Launch sequence
-1. **Function:** push `preorder-api` to `main`, import it into Vercel, and set the sandbox-phase variables.
+1. **Function:** push `preorder-api` to `main`, import it into Cloudflare Workers, and set the sandbox-phase variables.
 2. **Website:** merge `thanksgiving.html`, `thanksgiving-thanks.html` and their script to `main`, *without* the homepage button. The page is live but unlisted, and **its link isn't shared yet**.
 3. Run sandbox tests T1–T8 on the live page.
-4. **Switch to production:** update the Vercel variables to the Live column and redeploy.
+4. **Switch to production:** update the Cloudflare variables to the Live column (including `PREORDER_OPENS`) and deploy.
 5. **Real-money check:** buy one bouquet with a real card, check the order, tax and pickup in the Dashboard, then refund it.
 6. **Go public:** merge the homepage button and post the UTM-tagged link.
 7. **After close:** the page shows the closed message and the homepage button hides itself automatically. Later, remove the button and pages from the repository at leisure.
@@ -359,14 +365,15 @@ Use Square's sandbox test card (e.g. Visa `4111 1111 1111 1111`, any future expi
 
 ## 14. Open items
 - [ ] **Confirm the NJ sales tax rate.** The design uses the standard 6.625%. Confirm it applies to these sales at this location, e.g. with Square tax settings or an accountant.
-- [ ] Vercel project domain for `CHECKOUT_URL`, known after importing the repository into Vercel.
-- [ ] Sandbox access token entered in Vercel by the owner.
+- [ ] Worker `workers.dev` address for `CHECKOUT_URL`, known after importing the repository into Cloudflare.
+- [ ] Sandbox access token entered in Cloudflare by the owner.
 
 ## 15. Repositories and files
 
-**`damfloralstudio/preorder-api`** (new; first commit on `main`, deployed by Vercel)
+**`damfloralstudio/preorder-api`** (new; first commit on `main`, deployed by Cloudflare Workers on every push to `main`)
 ```
-api/checkout.js     the checkout endpoint
+src/index.js        the checkout endpoint (Cloudflare Worker)
+wrangler.toml       Worker configuration
 lib/order.js        products, prices, slots, tax, Square request body
 test/               tests (npm test)
 package.json        ES module setting and test script, no dependencies

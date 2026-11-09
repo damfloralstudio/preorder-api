@@ -1,0 +1,13 @@
+# Cloudflare Workers configuration for the Thanksgiving pre-order checkout.
+# Settings and the Square token are set in the Cloudflare dashboard
+# (Worker → Settings → Variables and Secrets), not in this file. See README.md.
+name = "preorder-api"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Keep variables set in the dashboard when a new version deploys from GitHub.
+keep_vars = true
+
+# Keep request logs (including Square error details) in Workers Logs.
+[observability]
+enabled = true

@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Readable } from 'node:stream';
-import handler from '../api/checkout.js';
+import worker, { handleRequest } from '../src/index.js';
 import { buildPaymentLinkRequest, validateRequest } from '../lib/order.js';
 
 const ENV = {
@@ -13,21 +12,14 @@ const ENV = {
   PREORDER_CLOSES: '2026-11-15T23:59:59-05:00',
 };
 const DURING = () => new Date('2026-11-10T12:00:00Z');
+const ENDPOINT = 'https://preorder-api.example.workers.dev/api/checkout';
 
-function fakeReq({ method = 'POST', origin = 'https://damfloralstudio.com', body } = {}) {
-  const req = Readable.from(body === undefined ? [] : [typeof body === 'string' ? body : JSON.stringify(body)]);
-  req.method = method;
-  req.headers = origin ? { origin } : {};
-  return req;
-}
-
-function fakeRes() {
-  return {
-    statusCode: 200, headers: {}, body: '',
-    setHeader(k, v) { this.headers[k.toLowerCase()] = v; },
-    end(b = '') { this.body = b; },
-    json() { return JSON.parse(this.body); },
-  };
+function makeRequest({ method = 'POST', origin = 'https://damfloralstudio.com', body, url = ENDPOINT } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (origin) headers.Origin = origin;
+  const init = { method, headers };
+  if (body !== undefined && method !== 'GET' && method !== 'OPTIONS') init.body = typeof body === 'string' ? body : JSON.stringify(body);
+  return new Request(url, init);
 }
 
 function squareOk(captured) {
@@ -37,10 +29,14 @@ function squareOk(captured) {
   };
 }
 
-async function call(reqOpts, opts = {}) {
-  const res = fakeRes();
-  await handler(fakeReq(reqOpts), res, { env: ENV, now: DURING, fetchImpl: squareOk([]), ...opts });
-  return res;
+async function call(reqOpts, { env = ENV, ...opts } = {}) {
+  const response = await handleRequest(makeRequest(reqOpts), env, { now: DURING, fetchImpl: squareOk([]), ...opts });
+  const text = await response.text();
+  return {
+    statusCode: response.status,
+    headers: Object.fromEntries([...response.headers].map(([k, v]) => [k.toLowerCase(), v])),
+    json: () => JSON.parse(text),
+  };
 }
 
 const VALID = { items: { bouquet: 2, arrangement: 1 }, pickup: 'tue', name: 'Jane Doe' };
@@ -206,14 +202,13 @@ test('missing configuration returns server_misconfigured', async () => {
   } finally { console.error = origError; }
 });
 
-test('uses req.body when Vercel has already parsed it', async () => {
-  const captured = [];
-  const req = fakeReq({ body: undefined });
-  req.body = VALID;
-  const res = fakeRes();
-  await handler(req, res, { env: ENV, now: DURING, fetchImpl: squareOk(captured) });
-  assert.equal(res.statusCode, 200);
-  assert.equal(captured.length, 1);
+test('unknown paths return 404', async () => {
+  const res = await call({ body: VALID, url: 'https://preorder-api.example.workers.dev/' });
+  assert.equal(res.statusCode, 404);
+});
+
+test('default export exposes a Workers fetch handler', () => {
+  assert.equal(typeof worker.fetch, 'function');
 });
 
 test('buildPaymentLinkRequest omits products with zero quantity', () => {
