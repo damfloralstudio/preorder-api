@@ -96,13 +96,13 @@ test('PICKUP_FULFILLMENT=off drops the fulfillment but keeps the slot in item na
   assert.match(captured[0].body.order.line_items[0].name, /Pickup Tue 11\/24/);
 });
 
-test('Tuesday pickup is 10am–4pm Eastern', async () => {
+test('Tuesday pickup is 10am–4:30pm Eastern', async () => {
   const captured = [];
   await call({ body: VALID }, { fetchImpl: squareOk(captured) });
   const details = captured[0].body.order.fulfillments[0].pickup_details;
   assert.equal(details.pickup_at, '2026-11-24T15:00:00Z');
-  assert.equal(details.pickup_window_duration, 'PT6H');
-  assert.equal(captured[0].body.payment_note, 'Thanksgiving pre-order · Pickup Tue Nov 24, 10am–4pm · Jane Doe');
+  assert.equal(details.pickup_window_duration, 'PT6H30M');
+  assert.equal(captured[0].body.payment_note, 'Thanksgiving pre-order · Pickup Tue Nov 24, 10am–4:30pm · Jane Doe');
 });
 
 test('production uses the production Square URL', async () => {

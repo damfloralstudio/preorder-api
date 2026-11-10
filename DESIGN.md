@@ -33,7 +33,7 @@ DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choo
 | Products | **Thanksgiving Bouquet · Designer’s Choice**: $50.00, max 3 per order · **Pumpkin Floral Arrangement · Designer’s Choice**: $60.00, max 2 per order (pumpkin vase included) |
 | Product photos | `assets/thanksgiving_bouquet.jpg`, `assets/thanksgiving_arrangement.jpg` |
 | Pickup location | Bwè Kafe – Washington St., 1002 Washington St, Hoboken, NJ 07030 |
-| Pickup slots | **Tue Nov 24, 10am–4pm** · **Wed Nov 25, 9am–12pm** |
+| Pickup slots | **Tue Nov 24, 10am–4:30pm** · **Wed Nov 25, 9am–12pm** |
 | Order window | Opens `2026-11-09T00:00:00-05:00` · Closes `2026-11-15T23:59:59-05:00` |
 | Sales tax | NJ sales tax added on top at checkout, 6.625% (rate to be confirmed, see §14) |
 | Payments | Square, Free plan, Checkout API (payment links) |
@@ -82,7 +82,7 @@ Uses the existing site's fonts, colors and header/footer. Top to bottom:
 
 1. **Headline and intro.** Pre-order Thanksgiving flowers for pickup in Hoboken.
 2. **Two product cards.** Each has a photo, name, price, description and a − / + quantity stepper starting at 0. The + button disables at the max: 3 bouquets, 2 arrangements.
-3. **Pickup time.** Two radio options, "Tue Nov 24, 10am–4pm" and "Wed Nov 25, 9am–12pm".
+3. **Pickup time.** Two radio options, "Tue Nov 24, 10am–4:30pm" and "Wed Nov 25, 9am–12pm".
 4. **Pickup location.** Bwè Kafe, 1002 Washington St, Hoboken, with a map link.
 5. **Your details.** *Name for pickup* (required, max 100 characters). No email field: see §5.6.
 6. **Summary.** For example: "2 Thanksgiving Bouquets · Subtotal $100.00 · NJ sales tax added at checkout". The summary uses short names ("Thanksgiving Bouquet", "Pumpkin Floral Arrangement") so the "·" separators stay readable. The page doesn't calculate tax itself, so it can't disagree with Square by a cent.
@@ -179,7 +179,7 @@ PRODUCTS
   arrangement: "Pumpkin Floral Arrangement · Designer’s Choice", 6000 cents, max 2
 
 PICKUP SLOTS                          pickup_at (UTC)          window   label
-  tue: Tue Nov 24, 10am–4pm ET        2026-11-24T15:00:00Z     PT6H     "Pickup Tue 11/24"
+  tue: Tue Nov 24, 10am–4:30pm ET     2026-11-24T15:00:00Z     PT6H30M  "Pickup Tue 11/24"
   wed: Wed Nov 25, 9am–12pm ET        2026-11-25T14:00:00Z     PT3H     "Pickup Wed 11/25"
 
 PICKUP NOTE  "Pickup at Bwè Kafe, 1002 Washington St, Hoboken, NJ 07030"
@@ -217,7 +217,7 @@ Content-Type: application/json
           "recipient": { "display_name": "Jane Doe" },
           "schedule_type": "SCHEDULED",
           "pickup_at": "2026-11-24T15:00:00Z",
-          "pickup_window_duration": "PT6H",
+          "pickup_window_duration": "PT6H30M",
           "note": "Pickup at Bwè Kafe, 1002 Washington St, Hoboken, NJ 07030"
         }
       }
@@ -231,7 +231,7 @@ Content-Type: application/json
     "enable_coupon": false,
     "enable_loyalty": false
   },
-  "payment_note": "Thanksgiving pre-order · Pickup Tue Nov 24, 10am–4pm · Jane Doe"
+  "payment_note": "Thanksgiving pre-order · Pickup Tue Nov 24, 10am–4:30pm · Jane Doe"
 }
 ```
 
