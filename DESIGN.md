@@ -5,7 +5,7 @@
 | **Status** | Approved |
 | **Last updated** | 2026-11-09 |
 | **Repositories** | `damfloralstudio/home` (website), `damfloralstudio/preorder-api` (checkout function) |
-| **Pre-order window** | Mon Nov 9, 12:00am – Sun Nov 15, 11:59pm (Eastern) |
+| **Pre-order window** | Mon Nov 9, 12:00am – Wed Nov 18, 11:59pm (Eastern; extended from Sun Nov 15) |
 
 ## 1. Summary
 
@@ -34,7 +34,7 @@ DAM Floral Studio is taking Thanksgiving pre-orders for one week. Customers choo
 | Product photos | `assets/thanksgiving_bouquet.jpg`, `assets/thanksgiving_arrangement.jpg` |
 | Pickup location | Bwè Kafe – Washington St., 1002 Washington St, Hoboken, NJ 07030 |
 | Pickup slots | **Tue Nov 24, 10am–4:30pm** · **Wed Nov 25, 9am–12pm** |
-| Order window | Opens `2026-11-09T00:00:00-05:00` · Closes `2026-11-15T23:59:59-05:00` |
+| Order window | Opens `2026-11-09T00:00:00-05:00` · Closes `2026-11-18T23:59:59-05:00` |
 | Sales tax | NJ sales tax added on top at checkout, 6.625% (rate to be confirmed, see §14) |
 | Payments | Square, Free plan, Checkout API (payment links) |
 | Contact | damfloralstudio@gmail.com |
@@ -75,7 +75,7 @@ Example: a customer orders 2 bouquets for Tuesday pickup.
 ## 5. Customer experience
 
 ### 5.1 Homepage entry point
-A seasonal button in the hero, **"Thanksgiving pre-orders, through Sun Nov 15"**, linking to `thanksgiving.html`. A script hides it automatically once the window closes, so it never needs removing by hand.
+A seasonal button in the hero, **"Thanksgiving pre-orders, through Wed Nov 18"**, linking to `thanksgiving.html`. A script hides it automatically once the window closes, so it never needs removing by hand.
 
 ### 5.2 `thanksgiving.html`
 Uses the existing site's fonts, colors and header/footer. Top to bottom:
@@ -119,7 +119,7 @@ Uses the existing site's fonts, colors and header/footer. Top to bottom:
 ### 5.5 Policy wording
 Shown on the pre-order page, on the thank-you page, and in the Square checkout policies (§10.1):
 
-> To cancel a pre-order, please submit a refund request to damfloralstudio@gmail.com before 11:59pm on Sunday, November 15th. We apologize in advance that we will not be able to honor any refund requests submitted after 11:59pm on Sunday, November 15th. We also cannot guarantee product availability for any products not picked up before 12:00pm on Wednesday, November 25th.
+> To cancel a pre-order, please submit a refund request to damfloralstudio@gmail.com before 11:59pm on Wednesday, November 18th. We apologize in advance that we will not be able to honor any refund requests submitted after 11:59pm on Wednesday, November 18th. We also cannot guarantee product availability for any products not picked up before 12:00pm on Wednesday, November 25th.
 
 ### 5.6 Decision: no email field on our page
 Square's checkout page always asks for the customer's email and phone, sends the receipt there, and adds them to the order's pickup recipient after payment. We decided not to ask for email on our page:
@@ -266,7 +266,7 @@ Set in the Cloudflare dashboard: Worker → Settings → Variables and Secrets. 
 | `SQUARE_LOCATION_ID` | `LGNJTM59K97VM` | `LRE7GZ33WEFC6` |
 | `ALLOWED_ORIGINS` | `https://damfloralstudio.com,http://localhost:8000` | `https://damfloralstudio.com` |
 | `PREORDER_OPENS` | `2026-11-08T00:00:00-05:00` (early, so testing can start before launch) | `2026-11-09T00:00:00-05:00` |
-| `PREORDER_CLOSES` | `2026-11-15T23:59:59-05:00` | same |
+| `PREORDER_CLOSES` | `2026-11-18T23:59:59-05:00` | same |
 | `PICKUP_FULFILLMENT` | unset (on) | unset, or `off` if test T1 fails |
 
 Tokens live **only** in Cloudflare, as a Secret. They never go in a repository, a chat or the website. If a token is ever exposed, replace it in the Square Developer Console and update Cloudflare.
@@ -314,7 +314,7 @@ Tokens live **only** in Cloudflare, as a Secret. They never go in a repository, 
 - Orders appear in **Dashboard → Orders** as they're paid.
 - Use Umami to watch the funnel. A gap between `checkout_click` and `checkout_redirect` means errors; check the Worker logs.
 
-### 10.3 Cancellations (before Sun Nov 15, 11:59pm)
+### 10.3 Cancellations (before Wed Nov 18, 11:59pm)
 Refund the payment from the Square Dashboard after receiving the email request.
 
 ### 10.4 Pickup days

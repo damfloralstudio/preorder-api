@@ -26,7 +26,7 @@ Checkout function for DAM Floral Studio's Thanksgiving pre-orders, running as a 
    | `SQUARE_LOCATION_ID` | Text | `LGNJTM59K97VM` | `LRE7GZ33WEFC6` |
    | `ALLOWED_ORIGINS` | Text | `https://damfloralstudio.com,http://localhost:8000` | `https://damfloralstudio.com` |
    | `PREORDER_OPENS` | Text | `2026-11-08T00:00:00-05:00` (early, so testing can start right away) | `2026-11-09T00:00:00-05:00` |
-   | `PREORDER_CLOSES` | Text | `2026-11-15T23:59:59-05:00` | same |
+   | `PREORDER_CLOSES` | Text | `2026-11-18T23:59:59-05:00` | same |
    | `PICKUP_FULFILLMENT` | Text | leave unset | leave unset, or `off` (see below) |
 
    Access tokens come from the Square Developer Console: your application → **Credentials**, with the Sandbox / Production toggle. **Enter tokens only in Cloudflare, as a Secret.** Never commit them or paste them anywhere else.

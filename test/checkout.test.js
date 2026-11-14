@@ -9,7 +9,7 @@ const ENV = {
   SQUARE_ENV: 'sandbox',
   ALLOWED_ORIGINS: 'https://damfloralstudio.com,http://localhost:8000',
   PREORDER_OPENS: '2026-11-09T00:00:00-05:00',
-  PREORDER_CLOSES: '2026-11-15T23:59:59-05:00',
+  PREORDER_CLOSES: '2026-11-18T23:59:59-05:00',
 };
 const DURING = () => new Date('2026-11-10T12:00:00Z');
 const ENDPOINT = 'https://preorder-api.example.workers.dev/api/checkout';
@@ -151,7 +151,7 @@ test('max quantities are accepted', () => {
 });
 
 test('closed before the window opens and after it closes', async () => {
-  for (const at of ['2026-11-09T04:59:59Z', '2026-11-16T05:00:00Z']) {
+  for (const at of ['2026-11-09T04:59:59Z', '2026-11-19T05:00:00Z']) {
     const res = await call({ body: VALID }, { now: () => new Date(at) });
     assert.equal(res.statusCode, 403, at);
     assert.deepEqual(res.json(), { error: 'preorders_closed' });
@@ -159,7 +159,7 @@ test('closed before the window opens and after it closes', async () => {
 });
 
 test('open at the first and last second of the window', async () => {
-  for (const at of ['2026-11-09T05:00:00Z', '2026-11-16T04:59:59Z']) {
+  for (const at of ['2026-11-09T05:00:00Z', '2026-11-19T04:59:59Z']) {
     const res = await call({ body: VALID }, { now: () => new Date(at) });
     assert.equal(res.statusCode, 200, at);
   }
